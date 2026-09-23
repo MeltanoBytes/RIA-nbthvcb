@@ -1,0 +1,9 @@
+version: pipelines/v0.1
+label: meltano_app_mdm
+schedule: 0 0 */6 * * *
+timeout: 0
+max_retries: 0
+script: meltano select --list --all tap-spreadsheets-sharepoint-app-registration
+data_components:
+- tap-spreadsheets-sharepoint-app-registration
+- Snowflake - snow_raw_ingest
