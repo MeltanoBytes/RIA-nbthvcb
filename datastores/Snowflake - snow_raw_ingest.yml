@@ -1,0 +1,3 @@
+version: datastores/v0.1
+name: Snowflake - snow_raw_ingest
+data_plugin: loaders/target-snowflake--meltanolabs
