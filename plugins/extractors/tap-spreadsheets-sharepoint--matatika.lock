@@ -1,0 +1,120 @@
+{
+  "plugin_type": "extractors",
+  "name": "tap-spreadsheets-sharepoint",
+  "namespace": "tap_spreadsheets_sharepoint",
+  "variant": "matatika",
+  "label": "SharePoint",
+  "docs": "https://www.matatika.com/data-details/tap-spreadsheets-sharepoint/",
+  "repo": "https://github.com/Matatika/tap-spreadsheets-anywhere",
+  "pip_url": "git+https://github.com/Matatika/tap-spreadsheets-anywhere.git@v0.7.0",
+  "python": "python3.10",
+  "executable": "tap-spreadsheets-anywhere",
+  "description": "Sync spreadsheets data from SharePoint\n\n## Setup\n\nIn SharePoint:\n1. Identify the site you want to sync files from\n1. Identify the directory structure where the files you want to sync exist\n\nIn Meltano Cloud:\n1. Login and connect with your Microsoft account\n1. Add Tables configuration, with respect to the identified site and directory structure\n\n## Enable BATCH mode for large syncs (optional)\n\nInstead of one record message per row, the tap can buffer rows and write them to Arrow IPC\nfiles, then emit batch messages that reference them - a compatible target loads these files\ndirectly instead of processing records one at a time. Set Batch Format, Batch Root Directory\nand Batch Size to enable it.\n\n> **Caveats** \u2014 `arrow` is the only batch encoding this tap supports; only a target that\n> advertises the `batch` capability processes batch messages, so leave these settings unset\n> for any other target. Enabling BATCH mode does not otherwise change the schema seen\n> downstream - use the `arrow_native_timestamps` table definition field (see Tables) to\n> control whether a `date-time` column is typed as a native Arrow timestamp or left as a\n> string in this mode.\n",
+  "logo_url": "/assets/logos/extractors/sharepoint.png",
+  "capabilities": [
+    "state",
+    "discover",
+    "batch",
+    "catalog"
+  ],
+  "settings": [
+    {
+      "name": "tables",
+      "kind": "array",
+      "label": "Tables",
+      "description": "A list of table definition objects\n\n### Table definition\n- `name`: string **(required)**\n\n  The name to assign to the stream\n\n- `path`: string **(required)**\n\n  A path to a directory containing files in the format `sharepoint://<site_name>/path/to/dir`\n\n- `format`: string **(required)**\n\n  The format of files to sync - one of `csv`, `json`, `jsonl`, `excel` or `detect`\n\n- `pattern`: string **(required)**\n\n  A regex pattern to filter resolved files on name by - set to `\"\"` if `path` specifies some\n  kind of filtering mechanism (e.g. glob pattern matching) and no more granular filtering is\n  required\n\n- `start_date`: string **(required)**\n\n  An ISO-8601 date-time to filter resolved files on last modified timestamp by\n\n- `key_properties`: array of strings **(required)**\n\n  The stream primary keys - for files where a primary key cannot be clearly identified, you\n  can reference meta-properties\n\n  ```json\n  [\n    \"_smart_source_bucket\",\n    \"_smart_source_file\",\n    \"_smart_source_lineno\"\n  ]\n  ```\n\n  or `[]` for append-only behaviour\n\n  If using the meta-property approach outlined above, be aware that changes to file locations\n  or contents may result in unexpected duplicates or overwrites - therefore, it is safest to\n  use this approach if the targeted files are, for all intents and purposes, immutable\n\n- `encoding`: string (default: `utf-8`)\n\n  The [encoding](https://docs.python.org/3/library/codecs.html#standard-encodings) to use\n  when reading files\n\n- `skip_initial`: integer (default: `0`)\n\n  The number of lines to skip over when reading a file - mostly useful for `excel` format\n  files\n\n- `max_sampled_files`: integer (default: `50`)\n\n  The number of files to sample during dynamic catalog discovery\n\n- `max_sampling_read`: integer (default: `1000`)\n\n  The number of lines to sample for each file during dynamic catalog discovery\n\n- `sample_rate`: integer (default: `5`)\n\n  Controls how frequently lines are sampled (i.e. every `n`th line) during dynamic catalog\n  discovery\n\n- `prefer_schema_as_string`: boolean (default: `false`)\n\n  Whether or not to skip inferring property types during sampling - if using with CSV files,\n  you can set `max_sampling_read` to `1` alongside this to improve discovery performance\n  (only the header row needs to be sampled to resolve the property set, given that all values\n  will be treated as strings)\n\n- `arrow_native_timestamps`: boolean (default: `true`)\n\n  Only consulted in Arrow BATCH mode (see below) - whether `date-time` columns are typed as\n  native Arrow timestamps (parsed with a strict ISO-8601 parser) rather than left as\n  unparsed strings. Set to `false` for a table with non-ISO-8601 date formatting.\n\n#### `csv` format only\n- `delimiter`: string (default: `,`)\n\n  The value delimiter sequence used in the targeted files\n\n- `quotechar`: string (default: `\"`)\n\n  The quotechar delimiter character used in the targeted files - set to `detect` to\n  auto-discover\n\n#### `excel` format only\n- `worksheet_name`: string\n\n  The specific worksheet name to pull out - defaults to the sheet with the most available\n  data\n\nSee the tap [README](https://github.com/Matatika/tap-spreadsheets-anywhere#configuration) for\nfurther information and other miscellaneous settings\n",
+      "hidden": false,
+      "sensitive": false,
+      "required": "true",
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.authorization_url",
+      "kind": "string",
+      "value": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "hidden": true,
+      "sensitive": false,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.scope",
+      "kind": "string",
+      "value": "offline_access Sites.Read.All Files.Read.All\n",
+      "hidden": true,
+      "sensitive": false,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.access_token",
+      "kind": "string",
+      "hidden": true,
+      "sensitive": true,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.refresh_token",
+      "kind": "string",
+      "hidden": true,
+      "sensitive": false,
+      "required": "true",
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.refresh_proxy_url",
+      "kind": "string",
+      "hidden": true,
+      "sensitive": true,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "oauth_credentials.refresh_proxy_url_auth",
+      "kind": "string",
+      "hidden": true,
+      "sensitive": true,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "batch_config.encoding.format",
+      "kind": "options",
+      "label": "Batch Format",
+      "description": "Format of the batch files. This tap only supports Arrow.",
+      "options": [
+        {
+          "label": "Arrow",
+          "value": "arrow"
+        }
+      ],
+      "hidden": false,
+      "sensitive": false,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "batch_config.storage.root",
+      "kind": "string",
+      "label": "Batch Root Directory",
+      "description": "The root directory where the batch files will be stored. Defaults to the system's temporary directory if not specified.",
+      "hidden": true,
+      "sensitive": false,
+      "configured": false,
+      "protected": false
+    },
+    {
+      "name": "batch_config.batch_size",
+      "kind": "integer",
+      "label": "Batch Size",
+      "description": "Number of rows per BATCH message file. Defaults to 100,000 if not specified.",
+      "hidden": false,
+      "sensitive": false,
+      "configured": false,
+      "protected": false
+    }
+  ]
+}
